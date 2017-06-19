@@ -12,18 +12,23 @@ class LoginActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
 
-        if (!nameField.text.isNullOrBlank()) {
+        loginButton.setOnClickListener { login() }
+    }
+
+    private fun login() {
+        val name = nameField.text.toString()
+        if (name.isNotBlank()) {
             FirebaseAuth.getInstance().signInAnonymously().addOnCompleteListener(this) { task ->
                 if (!task.isSuccessful) {
                     Log.w(LOG_TAG, task.exception.toString())
                 } else {
-                    //TODO: Start ChannelListActivity
+                    startActivity(ChannelListActivity.newIntent(this, name))
                 }
             }
         }
     }
 
     companion object {
-        private val LOG_TAG = "MainActivity"
+        private val LOG_TAG = "LoginActivity"
     }
 }
