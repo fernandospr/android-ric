@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.util.Log
+import android.view.MenuItem
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
@@ -24,6 +25,7 @@ class ChannelListActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_channel_list)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         mName = intent.getStringExtra(EXTRA_NAME)
                 ?: throw IllegalStateException("field $EXTRA_NAME missing in Intent")
@@ -33,6 +35,23 @@ class ChannelListActivity : AppCompatActivity() {
         observeChannels()
     }
 
+    override fun onDestroy() {
+        if (mEventListener != null) {
+            mChannelRef.removeEventListener(mEventListener)
+        }
+        super.onDestroy()
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            android.R.id.home -> {
+                onBackPressed()
+                return true
+            }
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
     private fun createChannel() {
         val name = channelName.text.toString()
         if (name.isNotBlank()) {
@@ -40,13 +59,6 @@ class ChannelListActivity : AppCompatActivity() {
             val channelItem = hashMapOf("name" to name)
             newChannelRef.setValue(channelItem)
         }
-    }
-
-    override fun onDestroy() {
-        if (mEventListener != null) {
-            mChannelRef.removeEventListener(mEventListener)
-        }
-        super.onDestroy()
     }
 
     private fun observeChannels() {

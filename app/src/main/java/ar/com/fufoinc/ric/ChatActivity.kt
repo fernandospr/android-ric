@@ -5,11 +5,13 @@ import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
+import android.view.MenuItem
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import com.stfalcon.chatkit.messages.MessageInput
 import com.stfalcon.chatkit.messages.MessagesListAdapter
 import kotlinx.android.synthetic.main.activity_chat.*
+
 
 class ChatActivity : AppCompatActivity(), MessageInput.InputListener {
 
@@ -29,6 +31,7 @@ class ChatActivity : AppCompatActivity(), MessageInput.InputListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_chat)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         mUserName = intent.getStringExtra(ChatActivity.EXTRA_USER_NAME)
                 ?: throw IllegalStateException("field ${ChatActivity.EXTRA_USER_NAME} missing in Intent")
@@ -51,6 +54,16 @@ class ChatActivity : AppCompatActivity(), MessageInput.InputListener {
             mMessageQuery?.removeEventListener(mEventListener)
         }
         super.onDestroy()
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            android.R.id.home -> {
+                onBackPressed()
+                return true
+            }
+        }
+        return super.onOptionsItemSelected(item)
     }
 
     private fun observeMessages() {
