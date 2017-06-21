@@ -8,8 +8,8 @@ import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import com.stfalcon.chatkit.messages.MessageInput
+import com.stfalcon.chatkit.messages.MessagesListAdapter
 import kotlinx.android.synthetic.main.activity_chat.*
-
 
 class ChatActivity : AppCompatActivity(), MessageInput.InputListener {
 
@@ -22,13 +22,13 @@ class ChatActivity : AppCompatActivity(), MessageInput.InputListener {
 
     var mMessageQuery: Query? = null
 
-    var mEventListener: ValueEventListener? = null
+    var mEventListener: ChildEventListener? = null
+
+    var mMessagesAdapter: MessagesListAdapter<Message>? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_chat)
-
-        input.setInputListener(this)
 
         mUserName = intent.getStringExtra(ChatActivity.EXTRA_USER_NAME)
                 ?: throw IllegalStateException("field ${ChatActivity.EXTRA_USER_NAME} missing in Intent")
@@ -38,6 +38,10 @@ class ChatActivity : AppCompatActivity(), MessageInput.InputListener {
         mMessageRef = FirebaseDatabase.getInstance().reference.child("channels").child(mChannel!!.id).child("messages")
 
         mSenderId = FirebaseAuth.getInstance().currentUser?.uid
+
+        initAdapter()
+        input.setInputListener(this)
+        title = mChannel?.name
 
         observeMessages()
     }
@@ -52,19 +56,28 @@ class ChatActivity : AppCompatActivity(), MessageInput.InputListener {
     private fun observeMessages() {
         mMessageQuery = mMessageRef?.limitToLast(25)
 
-        mEventListener = object : ValueEventListener {
-            override fun onDataChange(dataSnapshot: DataSnapshot) {
-                //TODO: Add messages to adapter
+        mEventListener = object : ChildEventListener {
 
-                Log.d(LOG_TAG, dataSnapshot.toString())
+            override fun onChildAdded(dataSnapshot: DataSnapshot, prevChildKey: String?) {
+                val message = Message(dataSnapshot.key,
+                        dataSnapshot.child("senderId").value.toString(),
+                        dataSnapshot.child("senderName").value.toString(),
+                        dataSnapshot.child("text").value.toString())
+                mMessagesAdapter?.addToStart(message, true)
             }
+
+            override fun onChildChanged(dataSnapshot: DataSnapshot, prevChildKey: String?) {}
+
+            override fun onChildRemoved(dataSnapshot: DataSnapshot) {}
+
+            override fun onChildMoved(dataSnapshot: DataSnapshot, prevChildKey: String?) {}
 
             override fun onCancelled(databaseError: DatabaseError) {
                 Log.e(ChatActivity.LOG_TAG, databaseError.message)
             }
         }
 
-        mMessageQuery?.addValueEventListener(mEventListener)
+        mMessageQuery?.addChildEventListener(mEventListener)
     }
 
     override fun onSubmit(input: CharSequence): Boolean {
@@ -73,6 +86,11 @@ class ChatActivity : AppCompatActivity(), MessageInput.InputListener {
         itemRef?.setValue(messageItem)
 
         return true
+    }
+
+    fun initAdapter() {
+        mMessagesAdapter = MessagesListAdapter<Message>(mSenderId, null)
+        messagesList.setAdapter(mMessagesAdapter)
     }
 
     companion object {
