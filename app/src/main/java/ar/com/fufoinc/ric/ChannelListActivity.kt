@@ -54,7 +54,7 @@ class ChannelListActivity : AppCompatActivity() {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 val channels = dataSnapshot.children.map { Channel(it.key, it.child("name").value.toString()) }
                 channelList.adapter = ChannelListAdapter(channels) {
-                    //TODO: Show ChatActivity with it
+                    startActivity(ChatActivity.newIntent(this@ChannelListActivity, mName!!, it))
                 }
                 channelList.layoutManager = LinearLayoutManager(this@ChannelListActivity, LinearLayoutManager.VERTICAL, false)
             }
