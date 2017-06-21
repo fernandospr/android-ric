@@ -7,8 +7,11 @@ import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
+import com.stfalcon.chatkit.messages.MessageInput
+import kotlinx.android.synthetic.main.activity_chat.*
 
-class ChatActivity : AppCompatActivity() {
+
+class ChatActivity : AppCompatActivity(), MessageInput.InputListener {
 
     var mUserName: String? = null
     var mChannel: Channel? = null
@@ -24,6 +27,8 @@ class ChatActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_chat)
+
+        input.setInputListener(this)
 
         mUserName = intent.getStringExtra(ChatActivity.EXTRA_USER_NAME)
                 ?: throw IllegalStateException("field ${ChatActivity.EXTRA_USER_NAME} missing in Intent")
@@ -49,7 +54,8 @@ class ChatActivity : AppCompatActivity() {
 
         mEventListener = object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
-                //TODO: Show chat messages
+                //TODO: Add messages to adapter
+
                 Log.d(LOG_TAG, dataSnapshot.toString())
             }
 
@@ -59,6 +65,14 @@ class ChatActivity : AppCompatActivity() {
         }
 
         mMessageQuery?.addValueEventListener(mEventListener)
+    }
+
+    override fun onSubmit(input: CharSequence): Boolean {
+        val itemRef = mMessageRef?.push()
+        val messageItem = hashMapOf("senderId" to mSenderId, "senderName" to mUserName, "text" to input.toString())
+        itemRef?.setValue(messageItem)
+
+        return true
     }
 
     companion object {
