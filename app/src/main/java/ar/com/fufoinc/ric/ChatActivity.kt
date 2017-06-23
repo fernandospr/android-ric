@@ -1,4 +1,4 @@
-package ar.com.fufoinc.ric;
+package ar.com.fufoinc.ric
 
 import android.content.Context
 import android.content.Intent

@@ -7,15 +7,12 @@ import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.util.Log
 import android.view.MenuItem
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.*
 import kotlinx.android.synthetic.main.activity_channel_list.*
 
 class ChannelListActivity : AppCompatActivity() {
 
-    val mChannelRef by lazy {
+    val mChannelRef: DatabaseReference by lazy {
         FirebaseDatabase.getInstance().reference.child("channels")
     }
 
